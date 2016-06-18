@@ -1,5 +1,8 @@
 <?php
 require_once 'login.php';
+session_start();
+
+$user_id = 0;
 
 $news_id = (int)$_GET['id'];
 $result = $connection->query("SELECT * FROM news WHERE id='$news_id'");
@@ -7,6 +10,9 @@ $row = $result->fetch_array(MYSQLI_ASSOC);
 $title = $row['title'];
 $content = $row['content'];
 $style = $row['style'];
+
+if (isset($_SESSION['user_id'])) {
+$user_id = $_SESSION['user_id']['id']; }
 
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])  && isset($_GET['news_id'])) {
     $comment_id = (int)$_GET['id'];
@@ -21,8 +27,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'comment' && isset($_POST['auth
     $author = $_POST['author'];
     $message = $_POST['message'];
 
-    if ($result_comments = $connection->prepare("INSERT INTO comments (news_id, author, message) VALUES (?, ?, ?)")) {
-        $result_comments->bind_param('iss', $news_id, $author, $message);
+    if ($result_comments = $connection->prepare("INSERT INTO comments (user_id, news_id, author, message) VALUES (?, ?, ?, ?)")) {
+        $result_comments->bind_param('iiss', $user_id, $news_id, $author, $message);
         if (!$result_comments->execute()) {
             die('Insert error');
         }
@@ -41,12 +47,12 @@ if (isset($_GET['action']) && $_GET['action'] == 'comment' && isset($_POST['auth
 <div style="margin-bottom: 25px;" class="text-center">
     <h1>Новостной блог</h1>
 </div>
-
-<div class="col-sm-3 text-center">
-    <a href="newsblog.php#news_id_<?php echo $news_id; ?>">Вернуться назад</a>
+<div class="row">
+    <div style="margin-left: 15px;" class="col-sm-3 text-center">
+        <a class="btn btn-default" href="newsblog.php#news_id_<?php echo $news_id; ?>">Вернуться назад</a>
+    </div>
 </div>
-
-<div class="container" style="margin-top: 80px;">
+<div class="container" style="margin-top: 40px;">
     <div class="panel panel-<?php echo $style; ?>" id="news_id_<?php echo $news_id; ?>">
         <div class="panel-heading">
             <h3 class="panel-title"><?php echo $title; ?></h3>

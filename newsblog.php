@@ -1,7 +1,9 @@
 <?php
 require_once 'login.php';
 
+$user_id = 0;
 session_start();
+
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id']['id'];
     $login = $connection->query("SELECT * FROM users WHERE id = '$user_id'")->fetch_array(MYSQLI_ASSOC);
@@ -21,8 +23,8 @@ if (isset($_POST['title']) && isset($_POST['content']) && isset($_POST['style'])
     $content = $_POST['content'];
     $style = $_POST['style'];
 
-    if ($stmt = $connection->prepare("INSERT INTO news (title, content, style) VALUES (?, ?, ?)")) {
-        $stmt->bind_param('sss', $title, $content, $style);
+    if ($stmt = $connection->prepare("INSERT INTO news (user_id, title, content, style) VALUES (?, ?, ?, ?)")) {
+        $stmt->bind_param('isss',  $user_id, $title, $content, $style);
         if (!$stmt->execute()) {
             die('Insert error');
         }
@@ -54,7 +56,7 @@ $news_total_count = $connection->query("SELECT COUNT(*) AS count FROM news")->fe
 <?php endif; ?>
 <?php if ($user_id != NULL): ?>
         <div class="col-sm-3  text-left">
-        Добро пожаловать, <?php echo $login['login']; ?>
+            <a href="profile.php#user_id_<?php echo $user_id ?>">Добро пожаловать, <?php echo $login['login']; ?></a>
         </div>
         <div class="col-sm-1 col-sm-offset-6 text-center">
             <a class="btn btn-default" href="newsblog.php?exit=1">Выход</a>
@@ -111,7 +113,6 @@ $news_total_count = $connection->query("SELECT COUNT(*) AS count FROM news")->fe
     </div>
 
     <hr/>
-
     <form class="form-horizontal" method="post" action="newsblog.php">
         <div class="form-group">
             <label for="title" class="col-sm-2 control-label">Название</label>
